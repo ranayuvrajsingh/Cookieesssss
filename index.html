@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Himanshi 🍪 Our Galaxy Love Story</title>
+
+  <!-- ══════════════════════════════════════════════
+       FONTS — Cormorant Garamond (romantic display)
+               + Quicksand (soft readable body)
+       ══════════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- ══════════════════════════════════════════════
+       CDN LIBRARIES
+       • Three.js  — galaxy / starfield background
+       • GSAP       — timeline animations
+       • ScrollTrigger — scroll-based reveals
+       • particles.js  — floating heart particles
+       ══════════════════════════════════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 0 — THREE.JS GALAXY CANVAS (fixed bg)
+       ══════════════════════════════════════════════ -->
+  <canvas id="galaxy-canvas"></canvas>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 1 — PARTICLES.JS HEARTS / DUST OVERLAY
+       ══════════════════════════════════════════════ -->
+  <div id="particles-js"></div>
+
+  <!-- ══════════════════════════════════════════════
+       LAYER 2 — FLOATING AMBIENT HEARTS (GSAP)
+       ══════════════════════════════════════════════ -->
+  <div id="floating-hearts-container" aria-hidden="true"></div>
+
+  <!-- ══════════════════════════════════════════════
+       HUD — MUSIC TOGGLE + HEART COUNTER
+       ══════════════════════════════════════════════ -->
+  <button id="music-btn" title="Toggle Music" aria-label="Toggle romantic music">
+    <span id="music-icon">♪</span>
+  </button>
+
+  <div id="hearts-hud" title="Find all 10 hidden hearts!">
+    <span>💗</span>
+    <span id="hearts-found">0</span>/<span>10</span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       HIDDEN HEARTS MINI-GAME
+       10 hearts scattered across the page
+       Each has data-heart-id for tracking
+       ══════════════════════════════════════════════ -->
+  <div class="hidden-heart" data-id="1"  style="top:18vh;  left:4vw"    aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="2"  style="top:55vh;  right:3vw"   aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="3"  style="top:115vh; left:7vw"    aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="4"  style="top:175vh; right:6vw"   aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="5"  style="top:240vh; left:2vw"    aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="6"  style="top:310vh; right:2vw"   aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="7"  style="top:390vh; left:5vw"    aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="8"  style="top:470vh; right:4vw"   aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="9"  style="top:550vh; left:3vw"    aria-label="Hidden heart">💗</div>
+  <div class="hidden-heart" data-id="10" style="top:640vh; right:5vw"   aria-label="Hidden heart">💗</div>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION 1 — INTRO / LANDING SCREEN
+       Full-viewport, typing animation, enter button
+       ══════════════════════════════════════════════ -->
+  <section id="intro" aria-label="Introduction">
+    <div class="intro-content">
+      <div class="intro-stars-ring" aria-hidden="true"></div>
+      <p class="intro-sub" id="typing-sub">✦ For my Cookieee, written in stardust ✦</p>
+      <h1 class="intro-title" id="intro-title">
+        <span id="typed-text"></span><span class="cursor">|</span>
+      </h1>
+      <p class="intro-tagline" id="intro-tagline"></p>
+      <button id="enter-btn" aria-label="Enter the website">
+        <span class="btn-text">Enter Our Universe</span>
+        <span class="btn-icon">✦</span>
+        <div class="btn-glow"></div>
+      </button>
+    </div>
+    <div class="scroll-hint" id="scroll-hint" aria-hidden="true">
+      <span>scroll to explore</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       MAIN UNIVERSE (revealed after intro button)
+       ══════════════════════════════════════════════ -->
+  <main id="universe" class="universe-hidden">
+
+    <!-- ─────────────────────────────────────────────
+         SECTION 2 — OUR STORY TIMELINE
+         ───────────────────────────────────────────── -->
+    <section id="story" aria-labelledby="story-title">
+      <div class="section-header">
+        <p class="section-eyebrow">✦ How it began ✦</p>
+        <h2 id="story-title" class="section-title">Our Story</h2>
+        <div class="title-underline"></div>
+      </div>
+
+      <div class="timeline">
+
+        <!-- Chapter I — Hinge, 22 March 2025 -->
+        <div class="timeline-item" data-side="left">
+          <div class="timeline-dot"><span>🌸</span></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">22 March 2025 · Hinge</div>
+            <h3>The First Hello 🍪</h3>
+            <p>Somewhere in the chaos of a thousand profiles, your name appeared — <em>Himanshi</em>. One message. One spark. Neither of us knew that a simple "hey" on Hinge would one day become our entire universe.</p>
+            <div class="card-shine"></div>
+          </div>
+        </div>
+
+        <!-- Chapter II — First meet, Radisson Chandigarh, 6 July 2025 -->
+        <div class="timeline-item" data-side="right">
+          <div class="timeline-dot"><span>🏨</span></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">6 July 2025 · Chandigarh</div>
+            <h3>Radisson, Room 203 ✨</h3>
+            <p>The first time I saw you in person — Radisson Chandigarh, Room 203 — the world went quiet. Every text, every voice note, every late-night conversation had been building to that one moment. You were even more beautiful than I'd imagined, Cookieee.</p>
+            <div class="card-shine"></div>
+          </div>
+        </div>
+
+        <!-- Chapter III — Second meet, Taj Gurugram, 1 Jan 2026 -->
+        <div class="timeline-item" data-side="left">
+          <div class="timeline-dot"><span>🌅</span></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">1 January 2026 · Gurugram</div>
+            <h3>Taj Gurugram, Room 903 💫</h3>
+            <p>We welcomed the new year together — just you and me, Taj Gurugram, Room 903. The whole world was counting down to midnight, but I was only counting how lucky I was to have you beside me. Starting 2026 with you felt like beginning a whole new galaxy.</p>
+            <div class="card-shine"></div>
+          </div>
+        </div>
+
+        <!-- Chapter IV — Forever -->
+        <div class="timeline-item" data-side="right">
+          <div class="timeline-dot"><span>💞</span></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">Now & Every Day After</div>
+            <h3>My Himanshi, Always 🍪</h3>
+            <p>From a Hinge match to a love story the stars themselves would envy — every moment with you is a chapter I never want to stop writing. This is us, Cookieee. Now and every beautiful day that follows.</p>
+            <div class="card-shine"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────
+         SECTION 3 — MEMORIES GALLERY
+         ───────────────────────────────────────────── -->
+    <section id="memories" aria-labelledby="memories-title">
+      <div class="section-header">
+        <p class="section-eyebrow">✦ Captured in light ✦</p>
+        <h2 id="memories-title" class="section-title">Our Memories</h2>
+        <div class="title-underline"></div>
+      </div>
+
+      <div class="gallery-grid">
+        <!-- Each card can hold a real <img> tag — placeholders use CSS gradients -->
+        <div class="memory-card glass-card" data-caption="22 March 2025 — the Hinge match that started everything">
+          <div class="memory-img memory-img--1">
+            <div class="memory-overlay">
+              <span class="memory-icon">🌸</span>
+              <p>22 March 2025</p>
+              <p style="font-size:0.7rem;opacity:0.7">First hello on Hinge</p>
+            </div>
+          </div>
+          <div class="memory-caption">The Hinge Hello 🍪</div>
+          <div class="card-shine"></div>
+        </div>
+
+        <div class="memory-card glass-card memory-card--tall" data-caption="6 July 2025 — Radisson Chandigarh, Room 203">
+          <div class="memory-img memory-img--2">
+            <div class="memory-overlay">
+              <span class="memory-icon">🏨</span>
+              <p>6 July 2025</p>
+              <p style="font-size:0.7rem;opacity:0.7">Radisson Chandigarh · R 203</p>
+            </div>
+          </div>
+          <div class="memory-caption">First Time, Chandigarh ✨</div>
+          <div class="card-shine"></div>
+        </div>
+
+        <div class="memory-card glass-card" data-caption="Late nights & long conversations">
+          <div class="memory-img memory-img--3">
+            <div class="memory-overlay">
+              <span class="memory-icon">🌙</span>
+              <p>Every midnight call</p>
+            </div>
+          </div>
+          <div class="memory-caption">Midnight Conversations 💫</div>
+          <div class="card-shine"></div>
+        </div>
+
+        <div class="memory-card glass-card memory-card--wide" data-caption="1 January 2026 — Taj Gurugram, Room 903">
+          <div class="memory-img memory-img--4">
+            <div class="memory-overlay">
+              <span class="memory-icon">🌅</span>
+              <p>1 January 2026</p>
+              <p style="font-size:0.7rem;opacity:0.7">Taj Gurugram · Room 903</p>
+            </div>
+          </div>
+          <div class="memory-caption">New Year, Gurugram 🎆</div>
+          <div class="card-shine"></div>
+        </div>
+
+        <div class="memory-card glass-card" data-caption="My Cookieee — the sweetest person I know">
+          <div class="memory-img memory-img--5">
+            <div class="memory-overlay">
+              <span class="memory-icon">🍪</span>
+              <p>My Cookieee</p>
+            </div>
+          </div>
+          <div class="memory-caption">Himanshi 💖</div>
+          <div class="card-shine"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────
+         SECTION 4 — REASONS I LOVE YOU (flip cards)
+         ───────────────────────────────────────────── -->
+    <section id="reasons" aria-labelledby="reasons-title">
+      <div class="section-header">
+        <p class="section-eyebrow">✦ Infinite and counting ✦</p>
+        <h2 id="reasons-title" class="section-title">Reasons I Love You</h2>
+        <div class="title-underline"></div>
+        <p class="section-desc">Hover each star to reveal a reason, Cookieee 🍪</p>
+      </div>
+
+      <div class="reasons-grid">
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 1">
+          <div class="reason-front glass-card"><span class="reason-num">01</span><span class="reason-emoji">🌟</span></div>
+          <div class="reason-back glass-card"><p>The way your eyes light up when you're excited — Himanshi, that look is the most beautiful thing I've ever seen. I could stare forever.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 2">
+          <div class="reason-front glass-card"><span class="reason-num">02</span><span class="reason-emoji">🌙</span></div>
+          <div class="reason-back glass-card"><p>Those late-night conversations that went on for hours — with you, I never once wanted to say goodnight.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 3">
+          <div class="reason-front glass-card"><span class="reason-num">03</span><span class="reason-emoji">🍪</span></div>
+          <div class="reason-back glass-card"><p>You are my Cookieee — sweet, warm, impossible to get enough of. Every moment with you feels like coming home.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 4">
+          <div class="reason-front glass-card"><span class="reason-num">04</span><span class="reason-emoji">✨</span></div>
+          <div class="reason-back glass-card"><p>The person you are — your warmth, your honesty, the way you care so deeply. You make everyone around you feel more loved.</p></div>
+        </div>
+
+        <div class="reason-card reason-card--center" tabindex="0" role="button" aria-label="Reason centre">
+          <div class="reason-front glass-card reason-front--special"><span class="reason-emoji" style="font-size:2.5rem">🍪</span><span style="font-size:0.7rem;opacity:0.7;letter-spacing:2px;text-transform:uppercase">Cookieee</span></div>
+          <div class="reason-back glass-card"><p>Simply because you are Himanshi — and somehow, impossibly, you are mine too.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 6">
+          <div class="reason-front glass-card"><span class="reason-num">05</span><span class="reason-emoji">🏨</span></div>
+          <div class="reason-back glass-card"><p>Room 203, Chandigarh — the moment I first saw you in person, everything else in the world just disappeared.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 7">
+          <div class="reason-front glass-card"><span class="reason-num">06</span><span class="reason-emoji">🎆</span></div>
+          <div class="reason-back glass-card"><p>Starting 2026 with you in Room 903, Taj Gurugram — I knew right then that every new year, every new chapter, I want it to start with you.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 8">
+          <div class="reason-front glass-card"><span class="reason-num">07</span><span class="reason-emoji">🌸</span></div>
+          <div class="reason-back glass-card"><p>Your strength — the quiet, graceful way you handle everything life throws at you. You have no idea how much I admire you, Himanshi.</p></div>
+        </div>
+
+        <div class="reason-card" tabindex="0" role="button" aria-label="Reason 9">
+          <div class="reason-front glass-card"><span class="reason-num">08</span><span class="reason-emoji">♾️</span></div>
+          <div class="reason-back glass-card"><p>Everything. Literally every single thing about you — every laugh, every quirk, every small habit. All of it. That's why.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────
+         SECTION 5 — FUTURE DREAMS
+         ───────────────────────────────────────────── -->
+    <section id="dreams" aria-labelledby="dreams-title">
+      <div class="section-header">
+        <p class="section-eyebrow">✦ What awaits us ✦</p>
+        <h2 id="dreams-title" class="section-title">Our Future Dreams</h2>
+        <div class="title-underline"></div>
+      </div>
+
+      <div class="dreams-constellation">
+        <div class="dream-orb dream-orb--1" data-dream="Travel the world together — Paris, Santorini, Bali — collecting sunsets and memories that are only ours 🌅">
+          <span class="dream-icon">✈️</span>
+          <div class="dream-label">Travel Together</div>
+          <div class="orb-pulse"></div>
+        </div>
+
+        <div class="dream-orb dream-orb--2" data-dream="A home of our own — warm lights, our favourite music playing, and Cookieee in the kitchen stealing all the snacks 🏡🍪">
+          <span class="dream-icon">🏡</span>
+          <div class="dream-label">Our Home</div>
+          <div class="orb-pulse"></div>
+        </div>
+
+        <div class="dream-orb dream-orb--3" data-dream="More New Year's Eves, more hotels, more moments where the whole world disappears and it's just you and me 🎆">
+          <span class="dream-icon">🎆</span>
+          <div class="dream-label">More New Years</div>
+          <div class="orb-pulse"></div>
+        </div>
+
+        <div class="dream-orb dream-orb--4" data-dream="Growing old together, Himanshi — still laughing at the same dumb jokes, still choosing each other every single morning 💞">
+          <span class="dream-icon">💞</span>
+          <div class="dream-label">Growing Old Together</div>
+          <div class="orb-pulse"></div>
+        </div>
+
+        <div class="dream-orb dream-orb--5" data-dream="A thousand more nights like Chandigarh and Gurugram — just us, the stars, and forever stretching out ahead 🌌">
+          <span class="dream-icon">🌌</span>
+          <div class="dream-label">More Nights Like Those</div>
+          <div class="orb-pulse"></div>
+        </div>
+
+        <!-- SVG constellation lines connecting orbs -->
+        <svg class="constellation-lines" aria-hidden="true">
+          <line class="c-line" x1="20%" y1="30%" x2="50%" y2="50%" />
+          <line class="c-line" x1="80%" y1="30%" x2="50%" y2="50%" />
+          <line class="c-line" x1="15%" y1="70%" x2="50%" y2="50%" />
+          <line class="c-line" x1="85%" y1="70%" x2="50%" y2="50%" />
+          <line class="c-line" x1="20%" y1="30%" x2="80%" y2="30%" />
+          <line class="c-line" x1="15%" y1="70%" x2="85%" y2="70%" />
+        </svg>
+
+        <div id="dream-tooltip" class="dream-tooltip glass-card" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────
+         SECTION 6 — SECRET MESSAGE
+         Unlock by clicking the glowing orb
+         ───────────────────────────────────────────── -->
+    <section id="secret" aria-labelledby="secret-title">
+      <div class="section-header">
+        <p class="section-eyebrow">✦ For your eyes only ✦</p>
+        <h2 id="secret-title" class="section-title">A Secret Message</h2>
+        <div class="title-underline"></div>
+      </div>
+
+      <div class="secret-container">
+        <div class="secret-orb" id="secret-orb" role="button" tabindex="0" aria-label="Click to unlock secret message">
+          <div class="orb-core"></div>
+          <div class="orb-ring orb-ring--1"></div>
+          <div class="orb-ring orb-ring--2"></div>
+          <div class="orb-ring orb-ring--3"></div>
+          <p class="orb-hint">Click to unlock</p>
+        </div>
+
+        <div class="secret-message glass-card" id="secret-message" aria-hidden="true">
+          <div class="secret-stars" aria-hidden="true">✦ ✧ ✦ ✧ ✦</div>
+          <h3>My Dearest Cookieee,</h3>
+          <p>
+            It started with a match on Hinge on 22nd March — just a tiny notification, the kind you almost scroll past. But something made me stop. Something made me say hello. And that hello, Himanshi, changed my entire world.
+          </p>
+          <p>
+            6th July, Chandigarh, Room 203 — the moment you walked in, every conversation, every voice note, every sleepless night suddenly made perfect sense. You were worth every second of waiting. More beautiful, more warm, more <em>you</em> than I had even imagined.
+          </p>
+          <p>
+            And then 1st January 2026 — Room 903, Taj Gurugram. Starting a brand new year with you felt like a promise the universe was making me. That all the best chapters of my life would have you in them.
+          </p>
+          <p>
+            You are my Cookieee 🍪 — sweet and warm and something I never want to go a single day without. Himanshi, you are not just someone I love. You are someone I choose, every single morning, across every universe that exists.
+          </p>
+          <p class="secret-sign">Yours, always and completely. 💖</p>
+          <div class="secret-stars" aria-hidden="true">✦ ✧ ✦ ✧ ✦</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────
+         SECTION 7 — FINAL ROMANTIC MESSAGE
+         ───────────────────────────────────────────── -->
+    <section id="finale" aria-labelledby="finale-title">
+      <div class="finale-content">
+        <div class="finale-hearts-rain" id="finale-hearts" aria-hidden="true"></div>
+        <p class="finale-eyebrow" id="finale-eyebrow">✦ Himanshi · always & forever ✦</p>
+        <h2 id="finale-title" class="finale-title">
+          You are my<br /><span class="finale-highlight">Cookieee</span><br />& my whole universe.
+        </h2>
+        <p class="finale-body">
+          From a Hinge hello on 22nd March, to Chandigarh on 6th July, to welcoming 2026 together in Gurugram — every step of this story has been the greatest adventure of my life. No matter how many stars fill this galaxy, Himanshi, I would search every single one to find you. And I would choose you. Again and again and again. 🍪
+        </p>
+        <div class="finale-divider">
+          <span>💗</span><span>🍪</span><span>💗</span>
+        </div>
+        <p class="finale-signature">Written in stardust, sealed with love — for my Cookieee.</p>
+      </div>
+
+      <!-- All-hearts-found overlay -->
+      <div id="hearts-win" class="hearts-win" aria-live="assertive" aria-hidden="true">
+        <div class="hearts-win-card glass-card">
+          <div class="hw-emoji">🍪</div>
+          <h3>You found all 10 hearts, Cookieee!</h3>
+          <p>Just like I found you — across a thousand profiles, a Hinge match, and two cities — completely, and forever. 💕</p>
+          <button id="hw-close" aria-label="Close">Continue exploring ✦</button>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /#universe -->
+
+  <script src="script.js"></script>
+</body>
+</html>
