@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCursor();
 
   // Scale up cursor on interactive elements
-  document.querySelectorAll('button, a, .reason-card, .dream-orb, .memory-card, .hidden-heart, .secret-orb')
+  document.querySelectorAll('button, a, .reason-card, .dream-orb, .memory-card, .hidden-heart, .secret-orb, #prev-btn, #next-btn')
     .forEach(el => {
       el.addEventListener('mouseenter', () => {
         cursor.style.transform = 'translate(-50%,-50%) scale(2.5)';
@@ -797,149 +797,186 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ───────────────────────────────────────
-     16. WEB-AUDIO AMBIENT MUSIC
-     Generates soft cosmic ambience
-     using Web Audio API oscillators
+     16. PLAYLIST MUSIC PLAYER
+     Reads from PLAYLIST (playlist.js)
+     First song always plays first,
+     rest are shuffled randomly.
      ─────────────────────────────────────── */
-  let audioCtx = null;
-  let musicNodes = [];
-  let musicPlaying = false;
+  (function initPlayer() {
 
-  const musicBtn  = document.getElementById('music-btn');
-  const musicIcon = document.getElementById('music-icon');
+    // ── Guard: if playlist.js not loaded or empty, show hint ──
+    if (typeof PLAYLIST === 'undefined' || !PLAYLIST.length) {
+      document.getElementById('player-title').textContent  = 'Add songs to playlist.js';
+      document.getElementById('player-artist').textContent = 'See music/HOW-TO-ADD-SONGS.txt';
+      return;
+    }
 
-  function buildAmbience() {
-    if (audioCtx) return; // already built
+    // ── Elements ──
+    const player       = document.getElementById('music-player');
+    const musicBtn     = document.getElementById('music-btn');
+    const musicIcon    = document.getElementById('music-icon');
+    const prevBtn      = document.getElementById('prev-btn');
+    const nextBtn      = document.getElementById('next-btn');
+    const titleEl      = document.getElementById('player-title');
+    const artistEl     = document.getElementById('player-artist');
+    const discEl       = document.getElementById('player-disc');
+    const progressFill = document.getElementById('player-progress-fill');
+    const progressBar  = document.getElementById('player-progress-bar');
+    const currentEl    = document.getElementById('player-current');
+    const durationEl   = document.getElementById('player-duration');
 
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // ── Build queue: first track locked, rest shuffled ──
+    function buildQueue() {
+      const first = PLAYLIST[0];
+      const rest  = PLAYLIST.slice(1)
+                             .map(s => ({ s, r: Math.random() }))
+                             .sort((a, b) => a.r - b.r)
+                             .map(x => x.s);
+      return [first, ...rest];
+    }
 
-    // Master gain
-    const masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 3);
-    masterGain.connect(audioCtx.destination);
+    let queue       = buildQueue();
+    let queueIndex  = 0;
+    let isPlaying   = false;
+    const audio     = new Audio();
+    audio.preload   = 'metadata';
+    audio.volume    = 0.8;
 
-    // Reverb using convolver
-    const convolver = audioCtx.createConvolver();
-    const reverbLen = audioCtx.sampleRate * 3;
-    const reverbBuf = audioCtx.createBuffer(2, reverbLen, audioCtx.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const data = reverbBuf.getChannelData(ch);
-      for (let i = 0; i < reverbLen; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2);
+    // ── Load a track by queue index ──
+    function loadTrack(idx) {
+      if (idx < 0) idx = queue.length - 1;
+      if (idx >= queue.length) {
+        // Reshuffle rest, keep first
+        queue = buildQueue();
+        idx   = 1; // skip to shuffled second (first already played)
+      }
+      queueIndex = idx;
+      const track = queue[queueIndex];
+
+      audio.src = track.file;
+      titleEl.textContent  = track.title  || formatFileName(track.file);
+      artistEl.textContent = track.artist || '🍪';
+
+      // Marquee for long titles
+      titleEl.classList.remove('long-title');
+      void titleEl.offsetWidth; // reflow
+      if (titleEl.scrollWidth > titleEl.offsetWidth + 4) {
+        const dist = -(titleEl.scrollWidth - titleEl.offsetWidth + 20);
+        titleEl.style.setProperty('--marquee-dist', dist + 'px');
+        titleEl.classList.add('long-title');
+      }
+
+      // Disc emoji cycles through music notes
+      const notes = ['🎵','🎶','🎼','🎹','🎸','💿'];
+      discEl.textContent = notes[queueIndex % notes.length];
+
+      progressFill.style.width = '0%';
+      currentEl.textContent    = '0:00';
+      durationEl.textContent   = '0:00';
+
+      if (isPlaying) audio.play().catch(() => {});
+    }
+
+    // ── Format filename to readable title ──
+    function formatFileName(path) {
+      return path.split('/').pop()
+                 .replace(/\.[^.]+$/, '')
+                 .replace(/[-_]/g, ' ')
+                 .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    // ── Format seconds → m:ss ──
+    function fmt(s) {
+      if (!s || isNaN(s)) return '0:00';
+      const m = Math.floor(s / 60);
+      const sec = String(Math.floor(s % 60)).padStart(2, '0');
+      return `${m}:${sec}`;
+    }
+
+    // ── Play / Pause ──
+    function togglePlay() {
+      if (!audio.src || audio.src === window.location.href) {
+        loadTrack(0);
+      }
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        musicIcon.textContent = '♪';
+        player.classList.remove('playing');
+        musicBtn.classList.remove('playing');
+      } else {
+        audio.play().then(() => {
+          isPlaying = true;
+          musicIcon.textContent = '⏸';
+          player.classList.add('playing');
+          musicBtn.classList.add('playing');
+        }).catch(err => {
+          console.warn('Playback blocked:', err);
+          musicIcon.textContent = '♪';
+        });
       }
     }
-    convolver.buffer = reverbBuf;
-    convolver.connect(masterGain);
 
-    // Dry path
-    const dryGain = audioCtx.createGain();
-    dryGain.gain.value = 0.4;
-    dryGain.connect(masterGain);
-
-    // Wet path
-    const wetGain = audioCtx.createGain();
-    wetGain.gain.value = 0.6;
-    wetGain.connect(convolver);
-
-    // Note frequencies for a C minor pentatonic scale
-    // C2, Eb2, F2, G2, Bb2 + octaves
-    const freqs = [65.41, 77.78, 87.31, 98.0, 116.54,
-                   130.81,155.56,174.61,196.0,233.08,
-                   261.63,311.13,349.23,392.0,466.16];
-
-    // Create oscillator pads
-    function createPad(freq, type, detuneAmount, gainVal, lfoFreq) {
-      const osc  = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      const lfo  = audioCtx.createOscillator();
-      const lfoGain = audioCtx.createGain();
-
-      osc.type = type;
-      osc.frequency.value = freq;
-      osc.detune.value    = detuneAmount;
-
-      lfo.frequency.value = lfoFreq;
-      lfoGain.gain.value  = 3;
-      lfo.connect(lfoGain);
-      lfoGain.connect(osc.detune);
-      lfo.start();
-
-      gain.gain.value = gainVal;
-      osc.connect(gain);
-      gain.connect(dryGain);
-      gain.connect(wetGain);
-      osc.start();
-
-      musicNodes.push(osc, lfo, gain, lfoGain);
+    // ── Next track ──
+    function nextTrack() {
+      loadTrack(queueIndex + 1);
+      if (isPlaying) audio.play().catch(() => {});
     }
 
-    // Low drone
-    createPad(65.41,  'sine',    0,   0.5,  0.05);
-    // Pad layers
-    createPad(130.81, 'sine',    5,   0.3,  0.08);
-    createPad(196.0,  'sine',   -5,   0.25, 0.07);
-    createPad(261.63, 'sine',    3,   0.15, 0.11);
-    createPad(174.61, 'sine',   -3,   0.18, 0.06);
-
-    // Gentle arpeggio using oscillator + gain scheduling
-    const arpNotes = [261.63, 329.63, 392.0, 329.63, 261.63, 196.0, 261.63, 392.0];
-    let arpIndex   = 0;
-
-    function playArpNote() {
-      if (!musicPlaying) return;
-      const osc  = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = arpNotes[arpIndex % arpNotes.length];
-      gain.gain.setValueAtTime(0, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
-      osc.connect(gain);
-      gain.connect(wetGain);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 2.6);
-      arpIndex++;
+    // ── Prev track ──
+    function prevTrack() {
+      // If >3 seconds in, restart current; else go previous
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+      } else {
+        loadTrack(queueIndex - 1);
+        if (isPlaying) audio.play().catch(() => {});
+      }
     }
 
-    const arpInterval = setInterval(() => {
-      if (!musicPlaying) { clearInterval(arpInterval); return; }
-      playArpNote();
-    }, 1400);
+    // ── Progress update ──
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      progressFill.style.width = pct + '%';
+      currentEl.textContent    = fmt(audio.currentTime);
+    });
 
-    playArpNote();
+    audio.addEventListener('loadedmetadata', () => {
+      durationEl.textContent = fmt(audio.duration);
+    });
 
-    musicNodes.push(masterGain, convolver, dryGain, wetGain);
-  }
+    // ── Auto-advance when song ends ──
+    audio.addEventListener('ended', () => {
+      nextTrack();
+    });
 
-  function stopAmbience() {
-    if (!audioCtx) return;
-    const masterGain = musicNodes.find(n => n instanceof GainNode && n.gain.value > 0.1);
-    if (masterGain) {
-      masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
-    }
-    setTimeout(() => {
-      musicNodes.forEach(n => { try { n.stop?.(); n.disconnect?.(); } catch(e){} });
-      musicNodes = [];
-      audioCtx.close();
-      audioCtx = null;
-    }, 2000);
-  }
+    // ── Seek on progress bar click ──
+    progressBar.addEventListener('click', (e) => {
+      if (!audio.duration) return;
+      const rect = progressBar.getBoundingClientRect();
+      const pct  = (e.clientX - rect.left) / rect.width;
+      audio.currentTime = pct * audio.duration;
+    });
 
-  musicBtn.addEventListener('click', () => {
-    musicPlaying = !musicPlaying;
+    // ── Button listeners ──
+    musicBtn.addEventListener('click', togglePlay);
+    nextBtn.addEventListener('click', nextTrack);
+    prevBtn.addEventListener('click', prevTrack);
 
-    if (musicPlaying) {
-      buildAmbience();
-      if (audioCtx?.state === 'suspended') audioCtx.resume();
-      musicIcon.textContent = '♫';
-      musicBtn.classList.add('playing');
-    } else {
-      stopAmbience();
-      musicIcon.textContent = '♪';
-      musicBtn.classList.remove('playing');
-    }
-  });
+    // ── Keyboard shortcut: Space = play/pause (when not typing) ──
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+      if (e.code === 'ArrowRight') nextTrack();
+      if (e.code === 'ArrowLeft')  prevTrack();
+    });
+
+    // ── Pre-load first track info without playing ──
+    loadTrack(0);
+    audio.pause(); // don't autoplay until user clicks
+
+  })();
 
   /* ───────────────────────────────────────
      EXTRA: Nebula glow background blobs

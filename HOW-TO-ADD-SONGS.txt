@@ -1,0 +1,51 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🎵 HOW TO ADD YOUR PLAYLIST — Cookieee 🍪
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — Copy your music files into THIS folder (music/)
+  Supported formats: .mp3  .ogg  .wav  .m4a  .aac
+  Example files to drop here:
+    • our-song.mp3
+    • tum-hi-ho.mp3
+    • perfect.mp3
+    • kesariya.mp3
+
+STEP 2 — Open  playlist.js  (in the main folder, next to index.html)
+  Edit the PLAYLIST array to list your songs IN ORDER.
+  The very FIRST song in the list will ALWAYS play first.
+  All others will play in RANDOM order after that.
+
+  Example:
+    const PLAYLIST = [
+      { file: "our-song.mp3",   title: "Our Song"   },
+      { file: "tum-hi-ho.mp3",  title: "Tum Hi Ho"  },
+      { file: "perfect.mp3",    title: "Perfect"     },
+      { file: "kesariya.mp3",   title: "Kesariya"   },
+    ];
+
+STEP 3 — Save playlist.js and open index.html in your browser.
+  Hit the ♪ button — your songs will play!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ First song  → always plays first (your special song)
+  ✓ Rest        → shuffle randomly every time
+  ✓ Auto-next   → moves to next song when current ends
+  ✓ Loop        → after last song, shuffles again from song 2
+  ✓ Controls    → ♪ button = play/pause
+                  ⏭  button = skip to next song
+  ✓ Song title shows in the player at bottom-right
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  your-folder/
+    ├── index.html
+    ├── style.css
+    ├── script.js
+    ├── playlist.js      ← edit this
+    └── music/
+        ├── our-song.mp3
+        ├── tum-hi-ho.mp3
+        └── ...          ← drop files here

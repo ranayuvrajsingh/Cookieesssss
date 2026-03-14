@@ -46,9 +46,40 @@
   <!-- ══════════════════════════════════════════════
        HUD — MUSIC TOGGLE + HEART COUNTER
        ══════════════════════════════════════════════ -->
-  <button id="music-btn" title="Toggle Music" aria-label="Toggle romantic music">
-    <span id="music-icon">♪</span>
-  </button>
+  <!-- ══════════════════════════════════════════════
+       MUSIC PLAYER — bottom-right mini player
+       Playlist loaded from playlist.js
+       ══════════════════════════════════════════════ -->
+  <div id="music-player">
+    <!-- Song info -->
+    <div id="player-info">
+      <div id="player-disc" aria-hidden="true">🎵</div>
+      <div id="player-text">
+        <div id="player-title">Press ♪ to play</div>
+        <div id="player-artist">Your Playlist 🍪</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div id="player-progress-wrap">
+      <div id="player-progress-bar">
+        <div id="player-progress-fill"></div>
+      </div>
+      <div id="player-times">
+        <span id="player-current">0:00</span>
+        <span id="player-duration">0:00</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="player-controls">
+      <button id="prev-btn"  title="Previous" aria-label="Previous song">⏮</button>
+      <button id="music-btn" title="Play / Pause" aria-label="Toggle music">
+        <span id="music-icon">♪</span>
+      </button>
+      <button id="next-btn"  title="Next" aria-label="Next song">⏭</button>
+    </div>
+  </div>
 
   <div id="hearts-hud" title="Find all 10 hidden hearts!">
     <span>💗</span>
@@ -418,6 +449,7 @@
 
   </main><!-- /#universe -->
 
+  <script src="playlist.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
